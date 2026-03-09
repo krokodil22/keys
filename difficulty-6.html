@@ -103,15 +103,12 @@
     ["Ф","Ы","В","А","П","Р","О","Л","Д","Ж","Э"],
     ["Я","Ч","С","М","И","Т","Ь","Б","Ю","."]
   ];
-  const BASE_EASY = ["Ф","Ы","В","А","П","О","Л","Д","Ж","Э","Я","Ч","С","М","И","Т","Ь","Б","Ю","Р","К","Е","Н","У","Г","З","Й","Ё","Ц"];
-  const EXTRA_EASY = ["Х","Ш","Щ","Ъ"];
-  const LEVEL_SIZES = {1:16,2:20,3:24,4:31,5:35};
-  const LEVEL_5_EXTRA = ".";
-  const LEVEL_6_EXTRA = " ";
-  const SPEED = {1:140,2:155,3:175,4:195,5:215,6:230,7:245};
+  const LETTER_ORDER = ["О","Е","А","И","Н","Т","С","Р","В","Л","К","М","Д","П","У","Я","Ы","Ь","Г","З","Б","Ч","Й","Х","Ж","Ш","Ю","Ц","Щ","Э","Ф","Ъ","Ё","."," "];
+  const LEVEL_SIZES = {1:35,2:35,3:35,4:35,5:35,6:35};
+  const SPEED = {1:140,2:165,3:190,4:215,5:240,6:260,7:280};
   const START_LIVES=3, RIGHT_PAD=24, TARGET_SCORE=35;
   const STORAGE_PREFIX="kt_d6";
-  const BIAS_NEW=0.7;
+  const REPEAT_CHANCE = {1:0.08,2:0.06,3:0.045,4:0.03,5:0.02,6:0.015,7:0.01};
 
   function sget(k){ try{return localStorage.getItem(STORAGE_PREFIX+'_'+k);}catch(e){return null;} }
   function sset(k,v){ try{localStorage.setItem(STORAGE_PREFIX+'_'+k, String(v));}catch(e){} }
@@ -138,14 +135,11 @@
   window.addEventListener('resize', applyKbdScale); applyKbdScale();
 
   let level=1,isBonus=false,setLetters=[],running=false,levelComplete=false,unlockedLevelMax=1;
-  let x=0,lastTs=null,req=null,lives=START_LIVES,score=0,target='Ф';
+  let x=0,lastTs=null,req=null,lives=START_LIVES,score=0,target='Ф',lastTarget='';
 
   function lettersForLevelNum(n){
-    const all = EXTRA_EASY.concat(BASE_EASY);
-    if(n<=4){ const size = LEVEL_SIZES[n] || all.length; return all.slice(0,size); }
-    if(n===5) return all.slice(0, LEVEL_SIZES[5]).concat(LEVEL_5_EXTRA);
-    if(n===6) return all.slice(0, LEVEL_SIZES[5]).concat(LEVEL_5_EXTRA, LEVEL_6_EXTRA);
-    return all.slice(0, LEVEL_SIZES[5]);
+    const size = LEVEL_SIZES[n] || LEVEL_SIZES[6] || LETTER_ORDER.length;
+    return LETTER_ORDER.slice(0, Math.min(size, LETTER_ORDER.length));
   }
   function lettersForPassed(unlocked){ const u=Math.min(Math.max(unlocked,1),6); return lettersForLevelNum(u); }
 
@@ -174,7 +168,7 @@
 
   function up(s){ return (s||'').toLocaleUpperCase('ru'); }
   function highlight(){ keyButtons.forEach((b,l)=>{ if(running && !levelComplete && l===target) b.classList.add('active'); else b.classList.remove('active'); }); const sp=document.getElementById('spaceKey'); if((!running && !levelComplete) || (running && target===' ')) sp.classList.add('active'); else sp.classList.remove('active'); }
-  function randomNext(){ const cut = Math.min(setLetters.length, EXTRA_EASY.length); const pickNew = (Math.random() < BIAS_NEW) && cut>0; if(pickNew) target = setLetters[Math.floor(Math.random()*cut)]; else target = setLetters[Math.floor(Math.random()*setLetters.length)]; }
+  function randomNext(){ const pool = setLetters.length ? setLetters : LETTER_ORDER; const repeatChance = REPEAT_CHANCE[isBonus?7:level] ?? 0.05; let next = pool[Math.floor(Math.random()*pool.length)]; if(pool.length>1 && lastTarget && next===lastTarget && Math.random()>repeatChance){ let guard=0; while(next===lastTarget && guard<12){ next = pool[Math.floor(Math.random()*pool.length)]; guard++; } } target=next; lastTarget=target; }
   function spawn(){ const w=arena.clientWidth||800; x=w-RIGHT_PAD; randomNext(); fly.textContent=target; fly.style.left=x+'px'; highlight(); }
 
   function setLevel(n){ isBonus=false; level=n; setLetters=lettersForLevelNum(n); lastTs=null; resetRound(); updateLevelLocks(); saveProgress(); }
