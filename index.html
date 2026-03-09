@@ -102,8 +102,7 @@
   const RU_LAYOUT = [
     ["Ё","Й","Ц","У","К","Е","Н","Г","Ш","Щ","З","Х","Ъ"],
     ["Ф","Ы","В","А","П","Р","О","Л","Д","Ж","Э"],
-    ["Я","Ч","С","М","И","Т","Ь","Б","Ю"],
-    ["."]
+    ["Я","Ч","С","М","И","Т","Ь","Б","Ю","."]
   ];
   const BASE_EASY = ["Ф","Ы","В","А","П","О","Л"];
   const EXTRA_EASY = ["Д","Ж","Э","Я","Ч"];
@@ -187,7 +186,7 @@
 
   function updateScore(){ scoreTag.textContent='Очки: '+score; if(!isBonus && score>=TARGET_SCORE && !levelComplete){ levelComplete=true; running=false; arenaHint.style.display='none'; overlay.style.display='flex'; highlight(); if(level<6){ overlayTitle.textContent='Отлично! Ты прошёл уровень!'; finalScore.textContent='Очки: '+score; retryBtn.style.display='none'; nextBtn.style.display='inline-block'; nextBtn.textContent='Перейти на следующий'; if(unlockedLevelMax===level) unlockedLevelMax=Math.min(6,unlockedLevelMax+1); } else { overlayTitle.textContent='Поздравляем! Ты прошёл все уровни!'; finalScore.textContent='Можешь играть бесконечно!'; retryBtn.style.display='none'; nextBtn.style.display='inline-block'; nextBtn.textContent='Перейти в бесконечный'; unlockedLevelMax=7; } updateLevelLocks(); saveProgress(); } }
   function handleInput(ch){ if(!running) return; if(up(ch)===target){ score+=1; updateScore(); spawn(); } }
-  function loop(ts){ if(!running){ req=requestAnimationFrame(loop); return; } if(lastTs==null) lastTs=ts; const dt=(ts-lastTs)/1000; lastTs=ts; x-=(SPEED[isBonus?7:level]||120)*dt; fly.style.left=x+'px'; if(x<=8){ lives-=1; renderLives(); if(lives<=0){ gameOver(); spawn(); } else spawn(); } req=requestAnimationFrame(loop); }
+  function loop(ts){ if(!running){ req=requestAnimationFrame(loop); return; } if(lastTs==null) lastTs=ts; const dt=(ts-lastTs)/1000; lastTs=ts; const baseSpeed=(SPEED[isBonus?7:level]||120); const bonusBoost=isBonus?Math.pow(1.2, Math.floor(score/10)):1; x-=(baseSpeed*bonusBoost)*dt; fly.style.left=x+'px'; if(x<=8){ lives-=1; renderLives(); if(lives<=0){ gameOver(); spawn(); } else spawn(); } req=requestAnimationFrame(loop); }
   function resetRound(){ lives=START_LIVES; score=0; levelComplete=false; renderLives(); running=false; arenaHint.style.display='block'; document.getElementById('spaceKey').classList.add('active'); spawn(); highlight(); }
 
   function saveProgress(){ try{ sset('unlockedMax', unlockedLevelMax); sset('level', level); }catch(e){} }
