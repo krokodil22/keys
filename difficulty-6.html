@@ -56,7 +56,7 @@
         <h1>Клавиатурный тренажёр</h1>
       </div>
       <div style="display:flex; gap:16px; align-items:center">
-        <div class="select-wrap">
+        <div class="select-wrap" id="difficultySwitchWrap">
           <select id="difficultySel" class="select">
                                     <option value="index.html" >Сложность 1</option><option value="difficulty-2.html" >Сложность 2</option><option value="difficulty-3.html" >Сложность 3</option><option value="difficulty-4.html" >Сложность 4</option><option value="difficulty-5.html" >Сложность 5</option><option value="difficulty-6.html" selected>Сложность 6</option><option value="difficulty-7.html" >Сложность 7</option></select>
         </div>
@@ -212,7 +212,7 @@
   retryBtn.addEventListener('click', ()=>{ overlay.style.display='none'; resetRound(); });
   nextBtn.addEventListener('click', ()=>{ if(level<6) setLevel(level+1); else setBonus(); overlay.style.display='none'; resetRound(); });
 
-  const diffSel=document.getElementById('difficultySel'); if(diffSel){ diffSel.addEventListener('change',(e)=>{ const v=e.target.value; if(v) window.location.href=v; }); }
+  const difficultySwitchWrap=document.getElementById('difficultySwitchWrap'); const hasDifficultyNav=(new URLSearchParams(window.location.search)).get('nav')==='1'; if(difficultySwitchWrap && !hasDifficultyNav){ difficultySwitchWrap.style.display='none'; } const diffSel=document.getElementById('difficultySel'); if(diffSel && hasDifficultyNav){ diffSel.addEventListener('change',(e)=>{ const v=e.target.value; if(v){ const nextUrl=new URL(v, window.location.href); nextUrl.searchParams.set('nav','1'); window.location.href=nextUrl.toString(); } }); }
 
   loadProgress(); setLevel(level); updateLevelLocks(); requestAnimationFrame(loop);
 })();
