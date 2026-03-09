@@ -72,6 +72,7 @@
         <button class="btn" data-level="3">Уровень 3</button>
         <button class="btn" data-level="4">Уровень 4</button>
         <button class="btn" data-level="5">Уровень 5</button>
+        <button class="btn" data-level="6">Уровень 6</button>
         <button class="btn" data-bonus="1">Бонус ∞</button>
       </div>
     </div>
@@ -101,12 +102,15 @@
   const RU_LAYOUT = [
     ["Ё","Й","Ц","У","К","Е","Н","Г","Ш","Щ","З","Х","Ъ"],
     ["Ф","Ы","В","А","П","Р","О","Л","Д","Ж","Э"],
-    ["Я","Ч","С","М","И","Т","Ь","Б","Ю"]
+    ["Я","Ч","С","М","И","Т","Ь","Б","Ю"],
+    ["."]
   ];
   const BASE_EASY = ["Ф","Ы","В","А","П","О","Л","Д","Ж","Э","Я","Ч","С","М","И","Т","Ь","Б","Ю","Р","К","Е","Н","У","Г","З"];
   const EXTRA_EASY = ["Х","Ц","Ш","Щ","Ъ","Ё","Й"];
   const LEVEL_SIZES = {1:10,2:14,3:18,4:26,5:33};
-  const SPEED = {1:100,2:115,3:135,4:155,5:170,6:180};
+  const LEVEL_5_EXTRA = ".";
+  const LEVEL_6_EXTRA = " ";
+  const SPEED = {1:100,2:115,3:135,4:155,5:175,6:190,7:205};
   const START_LIVES=3, RIGHT_PAD=24, TARGET_SCORE=20;
   const STORAGE_PREFIX="kt_d3";
   const BIAS_NEW=0.7;
@@ -128,7 +132,7 @@
   });
   const spaceRow=document.createElement('div'); spaceRow.className='row';
   const spaceBtn=document.createElement('button'); spaceBtn.className='key spacekey'; spaceBtn.textContent='Пробел'; spaceBtn.id='spaceKey';
-  spaceBtn.addEventListener('click',()=>start()); spaceRow.appendChild(spaceBtn); kbd.appendChild(spaceRow);
+  spaceBtn.addEventListener('click',()=>{ if(running) handleInput(' '); else start(); }); spaceRow.appendChild(spaceBtn); kbd.appendChild(spaceRow);
 
   function applyKbdScale(){ const outer=document.querySelector('.kbd-outer'); const inner=document.querySelector('.kbd');
     if(!outer||!inner) return; const available=outer.clientWidth; const base=920;
@@ -138,8 +142,14 @@
   let level=1,isBonus=false,setLetters=[],running=false,levelComplete=false,unlockedLevelMax=1;
   let x=0,lastTs=null,req=null,lives=START_LIVES,score=0,target='Ф';
 
-  function lettersForLevelNum(n){ const all = EXTRA_EASY.concat(BASE_EASY); const size = LEVEL_SIZES[n] || all.length; return all.slice(0,size); }
-  function lettersForPassed(unlocked){ const u=Math.min(Math.max(unlocked,1),5); const size=LEVEL_SIZES[u]; const all=EXTRA_EASY.concat(BASE_EASY); return all.slice(0,size); }
+  function lettersForLevelNum(n){
+    const all = EXTRA_EASY.concat(BASE_EASY);
+    if(n<=4){ const size = LEVEL_SIZES[n] || all.length; return all.slice(0,size); }
+    if(n===5) return all.slice(0, LEVEL_SIZES[5]).concat(LEVEL_5_EXTRA);
+    if(n===6) return all.slice(0, LEVEL_SIZES[5]).concat(LEVEL_5_EXTRA, LEVEL_6_EXTRA);
+    return all.slice(0, LEVEL_SIZES[5]);
+  }
+  function lettersForPassed(unlocked){ const u=Math.min(Math.max(unlocked,1),6); return lettersForLevelNum(u); }
 
   function makeHeart(f){ const el=document.createElement('span'); el.className='heart'+(f?' filled':''); el.innerHTML='<svg viewBox="0 0 24 24"><path class="shape" d="M12 21s-6.7-4.3-9.2-6.8C.2 11.6.2 8.4 2.8 5.8c2.1-2.1 5.6-2.1 7.7 0L12 7.4l1.5-1.5c2.1-2.1 5.6-2.1 7.7 0 2.6 2.6 2.6 5.8 0 8.3C18.7 16.7 12 21 12 21z"/></svg>'; return el; }
   function renderLives(){ livesEl.innerHTML=''; for(let i=0;i<START_LIVES;i++) livesEl.appendChild(makeHeart(i<lives)); }
@@ -148,7 +158,7 @@
     document.querySelectorAll('[data-level]').forEach(btn=>{
       const lvl=+btn.dataset.level;
       btn.classList.remove('level-locked','level-passed','level-current','level-open');
-      if(lvl > Math.min(unlockedLevelMax,5)){ btn.disabled=true; btn.classList.add('level-locked'); }
+      if(lvl > Math.min(unlockedLevelMax,6)){ btn.disabled=true; btn.classList.add('level-locked'); }
       else{
         btn.disabled=false;
         if(lvl===level && !isBonus) btn.classList.add('level-current');
@@ -159,13 +169,13 @@
     const bonusBtn=document.querySelector('[data-bonus]');
     if(bonusBtn){
       bonusBtn.classList.remove('level-locked','level-passed','level-current','level-open');
-      if(unlockedLevelMax>=6){ bonusBtn.disabled=false; isBonus?bonusBtn.classList.add('level-current'):bonusBtn.classList.add('level-passed'); }
+      if(unlockedLevelMax>=7){ bonusBtn.disabled=false; isBonus?bonusBtn.classList.add('level-current'):bonusBtn.classList.add('level-passed'); }
       else { bonusBtn.disabled=true; bonusBtn.classList.add('level-locked'); }
     }
   }
 
   function up(s){ return (s||'').toLocaleUpperCase('ru'); }
-  function highlight(){ keyButtons.forEach((b,l)=>{ if(running && !levelComplete && l===target) b.classList.add('active'); else b.classList.remove('active'); }); const sp=document.getElementById('spaceKey'); if(!running && !levelComplete) sp.classList.add('active'); else sp.classList.remove('active'); }
+  function highlight(){ keyButtons.forEach((b,l)=>{ if(running && !levelComplete && l===target) b.classList.add('active'); else b.classList.remove('active'); }); const sp=document.getElementById('spaceKey'); if((!running && !levelComplete) || (running && target===' ')) sp.classList.add('active'); else sp.classList.remove('active'); }
   function randomNext(){ const cut = Math.min(setLetters.length, EXTRA_EASY.length); const pickNew = (Math.random() < BIAS_NEW) && cut>0; if(pickNew) target = setLetters[Math.floor(Math.random()*cut)]; else target = setLetters[Math.floor(Math.random()*setLetters.length)]; }
   function spawn(){ const w=arena.clientWidth||800; x=w-RIGHT_PAD; randomNext(); fly.textContent=target; fly.style.left=x+'px'; highlight(); }
 
@@ -175,19 +185,19 @@
   function start(){ if(running||levelComplete) return; if(lives<=0){ lives=START_LIVES; score=0; updateScore(); } running=true; arenaHint.style.display='none'; document.getElementById('spaceKey').classList.remove('active'); overlay.style.display='none'; lastTs=null; if(!req) req=requestAnimationFrame(loop); highlight(); }
   function gameOver(){ running=false; overlay.style.display='flex'; highlight(); overlayTitle.textContent='Игра окончена'; finalScore.textContent='Ваш счёт: '+score; retryBtn.style.display='inline-block'; nextBtn.style.display='none'; }
 
-  function updateScore(){ scoreTag.textContent='Очки: '+score; if(!isBonus && score>=TARGET_SCORE && !levelComplete){ levelComplete=true; running=false; arenaHint.style.display='none'; overlay.style.display='flex'; highlight(); if(level<5){ overlayTitle.textContent='Отлично! Ты прошёл уровень!'; finalScore.textContent='Очки: '+score; retryBtn.style.display='none'; nextBtn.style.display='inline-block'; nextBtn.textContent='Перейти на следующий'; if(unlockedLevelMax===level) unlockedLevelMax=Math.min(5,unlockedLevelMax+1); } else { overlayTitle.textContent='Поздравляем! Ты прошёл все уровни!'; finalScore.textContent='Можешь играть бесконечно!'; retryBtn.style.display='none'; nextBtn.style.display='inline-block'; nextBtn.textContent='Перейти в бесконечный'; unlockedLevelMax=6; } updateLevelLocks(); saveProgress(); } }
+  function updateScore(){ scoreTag.textContent='Очки: '+score; if(!isBonus && score>=TARGET_SCORE && !levelComplete){ levelComplete=true; running=false; arenaHint.style.display='none'; overlay.style.display='flex'; highlight(); if(level<6){ overlayTitle.textContent='Отлично! Ты прошёл уровень!'; finalScore.textContent='Очки: '+score; retryBtn.style.display='none'; nextBtn.style.display='inline-block'; nextBtn.textContent='Перейти на следующий'; if(unlockedLevelMax===level) unlockedLevelMax=Math.min(6,unlockedLevelMax+1); } else { overlayTitle.textContent='Поздравляем! Ты прошёл все уровни!'; finalScore.textContent='Можешь играть бесконечно!'; retryBtn.style.display='none'; nextBtn.style.display='inline-block'; nextBtn.textContent='Перейти в бесконечный'; unlockedLevelMax=7; } updateLevelLocks(); saveProgress(); } }
   function handleInput(ch){ if(!running) return; if(up(ch)===target){ score+=1; updateScore(); spawn(); } }
-  function loop(ts){ if(!running){ req=requestAnimationFrame(loop); return; } if(lastTs==null) lastTs=ts; const dt=(ts-lastTs)/1000; lastTs=ts; x-=(SPEED[isBonus?6:level]||120)*dt; fly.style.left=x+'px'; if(x<=8){ lives-=1; renderLives(); if(lives<=0){ gameOver(); spawn(); } else spawn(); } req=requestAnimationFrame(loop); }
+  function loop(ts){ if(!running){ req=requestAnimationFrame(loop); return; } if(lastTs==null) lastTs=ts; const dt=(ts-lastTs)/1000; lastTs=ts; x-=(SPEED[isBonus?7:level]||120)*dt; fly.style.left=x+'px'; if(x<=8){ lives-=1; renderLives(); if(lives<=0){ gameOver(); spawn(); } else spawn(); } req=requestAnimationFrame(loop); }
   function resetRound(){ lives=START_LIVES; score=0; levelComplete=false; renderLives(); running=false; arenaHint.style.display='block'; document.getElementById('spaceKey').classList.add('active'); spawn(); highlight(); }
 
   function saveProgress(){ try{ sset('unlockedMax', unlockedLevelMax); sset('level', level); }catch(e){} }
-  function loadProgress(){ try{ const u=parseInt(sget('unlockedMax')||'1',10); const lv=parseInt(sget('level')||'1',10); if(!isNaN(u)) unlockedLevelMax=Math.min(Math.max(u,1),6); if(!isNaN(lv)) level=Math.min(Math.max(lv,1),5); }catch(e){} }
+  function loadProgress(){ try{ const u=parseInt(sget('unlockedMax')||'1',10); const lv=parseInt(sget('level')||'1',10); if(!isNaN(u)) unlockedLevelMax=Math.min(Math.max(u,1),7); if(!isNaN(lv)) level=Math.min(Math.max(lv,1),6); }catch(e){} }
 
-  window.addEventListener('keydown', e=>{ if(e.code==='Space'){ e.preventDefault(); start(); } else handleInput(e.key); });
+  window.addEventListener('keydown', e=>{ if(e.code==='Space'){ e.preventDefault(); if(running) handleInput(' '); else start(); } else handleInput(e.key); });
   document.querySelectorAll('[data-level]').forEach(btn=> btn.addEventListener('click', ()=> setLevel(+btn.dataset.level)));
   const bonusBtn=document.querySelector('[data-bonus]'); if(bonusBtn) bonusBtn.addEventListener('click', ()=> setBonus());
   retryBtn.addEventListener('click', ()=>{ overlay.style.display='none'; resetRound(); });
-  nextBtn.addEventListener('click', ()=>{ if(level<5) setLevel(level+1); else setBonus(); overlay.style.display='none'; resetRound(); });
+  nextBtn.addEventListener('click', ()=>{ if(level<6) setLevel(level+1); else setBonus(); overlay.style.display='none'; resetRound(); });
 
   const diffSel=document.getElementById('difficultySel'); if(diffSel){ diffSel.addEventListener('change',(e)=>{ const v=e.target.value; if(v) window.location.href=v; }); }
 
