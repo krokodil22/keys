@@ -34,6 +34,7 @@
     .key:hover{background:#f1f5f9}
     .key.active{background:var(--violet); color:white; box-shadow:0 6px 20px rgba(124,58,237,.35); animation:pulse 1s infinite}
     .spacekey{min-width:260px}
+    .kbd .key { pointer-events: none; }
     @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
     .lives{display:flex; gap:8px; align-items:center}
     .heart{width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center}
@@ -44,7 +45,6 @@
     .dino-left{left:0; width:180px}
     .dino-right{right:0; width:200px}
     @media (max-width:768px){.dino{display:none}}
-    .kbd .key { pointer-events: none; }
   </style>
 </head>
 <body>
@@ -57,7 +57,7 @@
       <div style="display:flex; gap:16px; align-items:center">
         <div class="select-wrap">
           <select id="difficultySel" class="select">
-                        <option value="index.html" selected>Сложность 1</option><option value="difficulty-2.html" >Сложность 2</option><option value="difficulty-3.html" >Сложность 3</option><option value="difficulty-4.html" >Сложность 4</option><option value="difficulty-5.html" >Сложность 5</option><option value="difficulty-6.html" >Сложность 6</option><option value="difficulty-7.html" >Сложность 7</option></select>
+                                    <option value="index.html" >Сложность 1</option><option value="difficulty-2.html" >Сложность 2</option><option value="difficulty-3.html" >Сложность 3</option><option value="difficulty-4.html" >Сложность 4</option><option value="difficulty-5.html" >Сложность 5</option><option value="difficulty-6.html" >Сложность 6</option><option value="difficulty-7.html" selected>Сложность 7</option></select>
         </div>
         <div class="lives" id="lives"></div>
         <div class="tag" id="scoreTag">Очки: 0</div>
@@ -103,15 +103,15 @@
     ["Ф","Ы","В","А","П","Р","О","Л","Д","Ж","Э"],
     ["Я","Ч","С","М","И","Т","Ь","Б","Ю","."]
   ];
-  const BASE_EASY = ["Ф","Ы","В","А","П","О","Л"];
-  const EXTRA_EASY = ["Д","Ж","Э","Я","Ч"];
-  const LEVEL_SIZES = {1:3,2:5,3:7,4:9,5:12};
+  const BASE_EASY = ["Ф","Ы","В","А","П","О","Л","Д","Ж","Э","Я","Ч","С","М","И","Т","Ь","Б","Ю","Р","К","Е","Н","У","Г","З","Й","Ё","Ц","Х"];
+  const EXTRA_EASY = ["Ш","Щ","Ъ"];
+  const LEVEL_SIZES = {1:18,2:22,3:26,4:32,5:35};
   const LEVEL_5_EXTRA = ".";
   const LEVEL_6_EXTRA = " ";
-  const SPEED = {1:80,2:95,3:110,4:130,5:150,6:170,7:185};
-  const START_LIVES=3, RIGHT_PAD=24, TARGET_SCORE=10;
-  const STORAGE_PREFIX="kt_d1";
-  const BIAS_NEW=0.0;
+  const SPEED = {1:155,2:170,3:190,4:210,5:230,6:245,7:260};
+  const START_LIVES=3, RIGHT_PAD=24, TARGET_SCORE=40;
+  const STORAGE_PREFIX="kt_d7";
+  const BIAS_NEW=0.7;
 
   function sget(k){ try{return localStorage.getItem(STORAGE_PREFIX+'_'+k);}catch(e){return null;} }
   function sset(k,v){ try{localStorage.setItem(STORAGE_PREFIX+'_'+k, String(v));}catch(e){} }
